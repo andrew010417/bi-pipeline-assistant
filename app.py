@@ -102,11 +102,24 @@ st.caption("R ↔ Python 변환 · 파이프라인 비교/보완 · Parameter �
 
 with st.sidebar:
     st.subheader("설정")
+    providers = config.available_providers()
+    if len(providers) > 1:
+        config.PROVIDER = st.radio(
+            "AI 모델",
+            providers,
+            index=providers.index(config.PROVIDER),
+            format_func=lambda p: config.PROVIDERS[p]["label"],
+            horizontal=True,
+        )
     online = config.has_api_key()
     if online:
-        st.success(f"Claude API 연결됨\n\n모델: `{config.MODEL}`")
+        label = config.PROVIDERS[config.PROVIDER]["label"]
+        st.success(f"{label} API 연결됨\n\n모델: `{config.model_for(config.PROVIDER)}`")
     else:
-        st.warning("API 키 없음 → 오프라인 모드\n\n`.env`에 `ANTHROPIC_API_KEY`를 넣으면 모든 기능이 켜집니다.")
+        st.warning(
+            "API 키 없음 → 오프라인 모드\n\n"
+            "`.env`에 `ANTHROPIC_API_KEY` 또는 `OPENAI_API_KEY`를 넣으면 모든 기능이 켜집니다."
+        )
     st.caption("⚠️ 회사 코드/데이터를 외부 API로 보내도 되는지 사내 정책을 확인하세요.")
 
 tab_convert, tab_compare, tab_params = st.tabs(["① R ↔ Python 변환", "② 파이프라인 비교", "③ Parameter 가이드"])

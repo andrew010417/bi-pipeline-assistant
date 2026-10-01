@@ -2,10 +2,14 @@
 
 from streamlit.testing.v1 import AppTest
 
+from bi_assistant import config
+
 
 def test_app_offline(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr(config, "PROVIDER", None)
     at = AppTest.from_file("../app.py", default_timeout=30).run()
     assert not at.exception
     assert len(at.tabs) == 3

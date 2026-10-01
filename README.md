@@ -29,7 +29,7 @@ bi-pipeline-assistant/
 ├── app.py                      # Streamlit 웹 UI (탭 3개)
 ├── bi_assistant/
 │   ├── config.py               # 환경 변수 설정
-│   ├── llm.py                  # Claude API 호출부 (모델 교체 시 이 파일만 수정)
+│   ├── llm.py                  # AI 호출부: Claude / GPT (다른 모델 추가 시 이 파일만 수정)
 │   ├── schemas.py              # Pydantic 모델 (구조화된 출력)
 │   ├── loader.py               # .ipynb / .Rmd 등에서 코드 추출
 │   ├── static_scan.py          # 오프라인 parameter 스캐너
@@ -48,7 +48,7 @@ bi-pipeline-assistant/
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env           # ANTHROPIC_API_KEY 입력
+cp .env.example .env           # ANTHROPIC_API_KEY 또는 OPENAI_API_KEY 입력
 streamlit run app.py           # http://localhost:8501
 ```
 
@@ -56,11 +56,16 @@ API 키가 없으면 ③ Parameter 가이드만 오프라인 모드(정적 분�
 
 ### 설정 (`.env`)
 
+Claude와 GPT 중 **키가 있는 쪽**을 자동으로 사용합니다. 두 키가 모두 있으면 웹 화면 왼쪽 사이드바에서 고를 수 있습니다.
+
 | 변수 | 기본값 | 설명 |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | - | Claude API 키 |
-| `BI_ASSISTANT_MODEL` | `claude-opus-5-5` | 사용할 모델 |
-| `BI_ASSISTANT_EFFORT` | `high` | `low` / `medium` / `high` / `xhigh` / `max` (낮을수록 빠르고 저렴함) |
+| `ANTHROPIC_API_KEY` | - | Claude API 키 (https://console.anthropic.com) |
+| `OPENAI_API_KEY` | - | OpenAI API 키 (https://platform.openai.com). ChatGPT 구독과는 별개로 API 크레딧이 필요 |
+| `BI_ASSISTANT_MODEL` | `claude-opus-5-5` | Claude 모델 |
+| `OPENAI_MODEL` | `gpt-5.5` | GPT 모델 |
+| `BI_ASSISTANT_PROVIDER` | (자동) | 두 키가 다 있을 때 시작 시 사용할 쪽: `anthropic` / `openai` |
+| `BI_ASSISTANT_EFFORT` | `high` | Claude 전용: `low` / `medium` / `high` / `xhigh` / `max` (낮을수록 빠르고 저렴함) |
 | `BI_ASSISTANT_MAX_TOKENS` | `16000` | 응답 최대 길이 (긴 파이프라인을 변환할 때 늘리기) |
 | `BI_ASSISTANT_OUTPUT_LANGUAGE` | `Korean` | 설명 언어 |
 
@@ -83,7 +88,7 @@ git push origin main && git push gitlab main
 
 ## 주의사항
 
-- **보안**: 코드가 Claude API(외부)로 전송됩니다. 회사 파이프라인이나 데이터 경로를 보내도 되는지 사내 정책을 먼저 확인하세요. 사내 모델로 바꾸려면 `bi_assistant/llm.py`의 `structured_call`만 교체하면 됩니다.
+- **보안**: 코드가 외부 API(Claude 또는 OpenAI)로 전송됩니다. 회사 파이프라인이나 데이터 경로를 보내도 되는지 사내 정책을 먼저 확인하세요. 사내 모델을 추가하려면 `bi_assistant/llm.py`만 수정하면 됩니다.
 - **실행 검증**(① 탭 체크박스)은 생성된 코드를 이 컴퓨터에서 그대로 실행합니다. 대상 언어의 인터프리터(`python3` / `Rscript`), 패키지, 입력 데이터가 있어야 하며, 신뢰할 수 있는 환경에서만 사용하세요.
 - 변환 결과는 패키지 간 기본값과 알고리즘 차이(예: Louvain vs Leiden) 때문에 숫자가 완전히 같지 않을 수 있습니다. ①의 "주의사항"을 꼭 확인하세요.
 
