@@ -21,6 +21,44 @@ UPLOAD_TYPES = ["py", "R", "r", "Rmd", "qmd", "ipynb", "smk", "nf", "sh", "txt"]
 
 st.set_page_config(page_title="BI Pipeline Assistant", page_icon="🧬", layout="wide")
 
+# Replace Streamlit's top-right "running" icon with a player dribbling a ball.
+RUNNING_ICON_CSS = """
+<style>
+[data-testid="stStatusWidgetRunningIcon"] svg { display: none !important; }
+[data-testid="stStatusWidgetRunningIcon"] {
+  position: relative; width: 4.2rem; height: 1.8rem; overflow: visible;
+}
+[data-testid="stStatusWidgetRunningIcon"]::before,
+[data-testid="stStatusWidgetRunningIcon"]::after {
+  position: absolute; bottom: 0.1rem; line-height: 1;
+}
+/* runner: the emoji faces left, so flip it to run toward the ball */
+[data-testid="stStatusWidgetRunningIcon"]::before {
+  content: "🏃"; left: 0; font-size: 1.4rem;
+  animation: bi-run 0.35s ease-in-out infinite alternate;
+}
+/* ball: kicked forward, rolls back to the runner's foot */
+[data-testid="stStatusWidgetRunningIcon"]::after {
+  content: "⚽"; left: 1.45rem; font-size: 0.8rem;
+  animation: bi-dribble 0.7s ease-in-out infinite;
+}
+@keyframes bi-run {
+  from { transform: scaleX(-1) translateY(0); }
+  to   { transform: scaleX(-1) translateY(-3px); }
+}
+@keyframes bi-dribble {
+  0%   { transform: translateX(0) rotate(0deg); }
+  50%  { transform: translateX(1.4rem) translateY(-2px) rotate(360deg); }
+  100% { transform: translateX(0) rotate(720deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="stStatusWidgetRunningIcon"]::before,
+  [data-testid="stStatusWidgetRunningIcon"]::after { animation: none; }
+}
+</style>
+"""
+st.markdown(RUNNING_ICON_CSS, unsafe_allow_html=True)
+
 
 # ---------- helpers ----------
 
