@@ -1,0 +1,57 @@
+# R <-> Python equivalents. Fed to the converter prompt.
+# Add your lab's own mappings here: this file is the easiest place to improve conversion quality.
+- domain: scRNA-seq
+  r: Seurat
+  python: scanpy (+ anndata)
+  pairs:
+    - [CreateSeuratObject, "sc.AnnData / sc.read_10x_mtx + sc.pp.filter_cells/filter_genes"]
+    - [Read10X, sc.read_10x_mtx]
+    - ["PercentageFeatureSet(pattern='^MT-')", "sc.pp.calculate_qc_metrics(qc_vars=['mt'])"]
+    - [NormalizeData, "sc.pp.normalize_total + sc.pp.log1p"]
+    - [FindVariableFeatures, sc.pp.highly_variable_genes]
+    - [ScaleData, sc.pp.scale]
+    - [RunPCA, sc.tl.pca]
+    - [FindNeighbors, sc.pp.neighbors]
+    - [FindClusters, "sc.tl.leiden (Seurat default is Louvain)"]
+    - [RunUMAP, sc.tl.umap]
+    - [FindAllMarkers, sc.tl.rank_genes_groups]
+    - [SCTransform, "sc.experimental.pp.normalize_pearson_residuals (approximate)"]
+    - [IntegrateData / RunHarmony, "sc.external.pp.harmony_integrate / scanorama"]
+  caveats:
+    - "Seurat stores genes x cells; AnnData stores cells x genes."
+    - "Default HVG flavor differs: Seurat 'vst' ~ scanpy flavor='seurat_v3' (needs raw counts)."
+    - "Clustering resolution values are not numerically equivalent between Louvain (Seurat) and Leiden (scanpy)."
+- domain: bulk RNA-seq differential expression
+  r: DESeq2 / edgeR / limma
+  python: pydeseq2
+  pairs:
+    - [DESeqDataSetFromMatrix, "pydeseq2.dds.DeseqDataSet(counts=..., metadata=..., design=...)"]
+    - [DESeq, "dds.deseq2()"]
+    - [results, "pydeseq2.ds.DeseqStats(dds, contrast=...).summary()"]
+    - [lfcShrink, "DeseqStats.lfc_shrink()"]
+    - [vst, "dds.vst() (pydeseq2 >= 0.4)"]
+    - ["edgeR::glmQLFit", "no direct equivalent; use pydeseq2 or call R via rpy2"]
+  caveats:
+    - "pydeseq2 expects samples x genes; DESeq2 expects genes x samples."
+    - "Independent filtering / Cook's distance defaults may differ slightly."
+- domain: enrichment
+  r: clusterProfiler / fgsea
+  python: gseapy
+  pairs:
+    - [enrichGO / enrichKEGG, gseapy.enrichr]
+    - [fgsea / GSEA, gseapy.prerank]
+- domain: plotting
+  r: ggplot2
+  python: plotnine (closest API) or matplotlib/seaborn
+  pairs:
+    - [ggplot + geom_point, "plotnine.ggplot + geom_point"]
+    - [pheatmap, "seaborn.clustermap"]
+    - [EnhancedVolcano, "matplotlib scatter (manual) or bioinfokit.visuz.GeneExpression.volcano"]
+- domain: data handling
+  r: base R / dplyr / data.table
+  python: pandas / numpy
+  pairs:
+    - [read.csv / fread, pandas.read_csv]
+    - [dplyr::filter, "DataFrame.query / boolean indexing"]
+    - [dplyr::group_by + summarise, "DataFrame.groupby().agg()"]
+    - [saveRDS / readRDS, "pickle / anndata.write_h5ad"]

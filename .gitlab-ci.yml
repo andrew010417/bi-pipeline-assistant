@@ -1,0 +1,6 @@
+# Same checks as .github/workflows/ci.yml, for the company GitLab mirror.
+test:
+  image: python:3.11-slim
+  script:
+    - pip install -r requirements.txt
+    - pytest -q

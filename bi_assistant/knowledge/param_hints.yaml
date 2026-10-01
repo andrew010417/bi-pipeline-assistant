@@ -1,0 +1,78 @@
+# Curated parameter hints. Used offline (no API key) and as grounding for the LLM.
+# key: parameter name as it appears in code (R or Python).
+nFeature_RNA:
+  importance: high
+  what: "세포당 검출된 유전자 수. 너무 적으면 빈 droplet, 너무 많으면 doublet일 가능성."
+  candidates: ["> 200 (기본)", "> 500 (엄격)", "< 2500 ~ 6000 (상한, 데이터 분포 보고 결정)"]
+min_genes:
+  importance: high
+  what: "scanpy에서 세포당 최소 유전자 수 (Seurat nFeature_RNA 하한과 같은 역할)."
+  candidates: ["200 (기본)", "500 (엄격)"]
+percent.mt:
+  importance: high
+  what: "미토콘드리아 유전자 비율. 높으면 죽어가는 세포."
+  candidates: ["< 5 (PBMC 등 일반)", "< 10 ~ 20 (심장/근육 등 미토콘드리아 많은 조직)"]
+pct_counts_mt:
+  importance: high
+  what: "scanpy의 미토콘드리아 비율 (percent.mt와 동일)."
+  candidates: ["< 5", "< 10 ~ 20 (조직 특성에 따라)"]
+min.cells:
+  importance: low
+  what: "유전자가 최소 몇 개 세포에서 발현돼야 남길지."
+  candidates: ["3 (기본)", "10 (노이즈 감소)"]
+min_cells:
+  importance: low
+  what: "scanpy에서 유전자당 최소 발현 세포 수."
+  candidates: ["3 (기본)", "10"]
+nfeatures:
+  importance: medium
+  what: "Highly variable gene 개수."
+  candidates: ["2000 (기본)", "3000 (이질적인 데이터)", "1000 (작은 데이터셋)"]
+n_top_genes:
+  importance: medium
+  what: "scanpy HVG 개수 (Seurat nfeatures와 동일)."
+  candidates: ["2000", "3000"]
+dims:
+  importance: high
+  what: "neighbor graph/UMAP에 쓸 PC 개수. Elbow plot으로 결정."
+  candidates: ["1:10 (작은 데이터)", "1:20 ~ 1:30 (일반)", "1:50 (복잡한 조직)"]
+n_pcs:
+  importance: high
+  what: "scanpy에서 neighbors에 쓸 PC 개수 (Seurat dims와 동일)."
+  candidates: ["10", "20 ~ 30", "50"]
+resolution:
+  importance: high
+  what: "클러스터링 해상도. 높을수록 클러스터가 잘게 쪼개짐."
+  candidates: ["0.4 ~ 0.6 (큰 세포군)", "0.8 (기본)", "1.0 ~ 2.0 (세부 subtype)"]
+n_neighbors:
+  importance: medium
+  what: "kNN 이웃 수. 작으면 local 구조, 크면 global 구조 강조."
+  candidates: ["10", "15 (scanpy 기본)", "30"]
+min_dist:
+  importance: low
+  what: "UMAP 점들의 뭉침 정도 (시각화 전용, 클러스터 결과엔 영향 없음)."
+  candidates: ["0.1", "0.3 (Seurat 기본)", "0.5 (scanpy 기본)"]
+logfc.threshold:
+  importance: medium
+  what: "마커 유전자로 테스트할 최소 log fold change."
+  candidates: ["0.1 (Seurat v5 기본)", "0.25 (Seurat v4 기본)", "0.5 (엄격)"]
+min.pct:
+  importance: low
+  what: "마커 유전자가 최소 몇 %의 세포에서 발현돼야 하는지."
+  candidates: ["0.1 (기본)", "0.25"]
+alpha:
+  importance: high
+  what: "DESeq2 adjusted p-value 기준 (FDR)."
+  candidates: ["0.05 (일반)", "0.1 (DESeq2 기본)", "0.01 (엄격)"]
+lfcThreshold:
+  importance: medium
+  what: "DESeq2에서 검정 자체에 쓰는 log2FC 임계값."
+  candidates: ["0 (기본)", "0.5", "1 (2배 변화)"]
+padj:
+  importance: high
+  what: "유의성 판단에 쓰는 adjusted p-value 컷오프."
+  candidates: ["< 0.05", "< 0.1", "< 0.01"]
+n_genes_by_counts:
+  importance: high
+  what: "scanpy에서 세포당 검출 유전자 수 (Seurat nFeature_RNA와 동일). 상한은 doublet 제거용."
+  candidates: ["< 2500 (PBMC)", "< 5000 ~ 6000 (세포가 큰 조직)", "상한 없이 doublet 도구 사용"]

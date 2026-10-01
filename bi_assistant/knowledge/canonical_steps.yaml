@@ -1,0 +1,32 @@
+# Canonical step categories used to align two pipelines in the comparator.
+# The LLM maps each step to one of these ids (or 'other').
+scRNA-seq:
+  - {id: load, name: "Load counts"}
+  - {id: qc_metrics, name: "QC metrics (nFeature, nCount, percent.mt)"}
+  - {id: cell_filter, name: "Cell/gene filtering"}
+  - {id: doublet, name: "Doublet detection"}
+  - {id: ambient, name: "Ambient RNA correction"}
+  - {id: normalization, name: "Normalization"}
+  - {id: hvg, name: "Highly variable genes"}
+  - {id: scaling, name: "Scaling / regression of covariates"}
+  - {id: pca, name: "PCA"}
+  - {id: integration, name: "Batch correction / integration"}
+  - {id: neighbors, name: "Neighbor graph"}
+  - {id: clustering, name: "Clustering"}
+  - {id: embedding, name: "UMAP / tSNE"}
+  - {id: markers, name: "Marker genes / DE"}
+  - {id: annotation, name: "Cell type annotation"}
+  - {id: save, name: "Save results"}
+bulk RNA-seq:
+  - {id: load, name: "Load counts + metadata"}
+  - {id: sample_qc, name: "Sample QC / outlier check"}
+  - {id: gene_filter, name: "Low-count gene filtering"}
+  - {id: normalization, name: "Normalization / size factors"}
+  - {id: batch, name: "Batch effect handling"}
+  - {id: de_model, name: "DE model fit"}
+  - {id: de_results, name: "DE results / contrasts"}
+  - {id: shrinkage, name: "LFC shrinkage"}
+  - {id: multiple_testing, name: "Multiple testing correction"}
+  - {id: enrichment, name: "Pathway / GO enrichment"}
+  - {id: visualization, name: "PCA / volcano / heatmap"}
+  - {id: save, name: "Save results"}
