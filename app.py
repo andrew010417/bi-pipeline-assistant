@@ -21,39 +21,62 @@ UPLOAD_TYPES = ["py", "R", "r", "Rmd", "qmd", "ipynb", "smk", "nf", "sh", "txt"]
 
 st.set_page_config(page_title="BI Pipeline Assistant", page_icon="🧬", layout="wide")
 
-# Replace Streamlit's top-right "running" icon with a player dribbling a ball.
+# While the app is running, show a soccer field under the header: a player dribbles
+# the ball from the left edge into the goal on the right, looping until the run ends.
+# Every element is a pseudo-element of Streamlit's status widget, which only holds
+# the running icon while a script is running, so the field disappears when work ends.
 RUNNING_ICON_CSS = """
 <style>
 [data-testid="stStatusWidgetRunningIcon"] svg { display: none !important; }
-[data-testid="stStatusWidgetRunningIcon"] {
-  position: relative; width: 4.2rem; height: 1.8rem; overflow: visible;
+[data-testid="stStatusWidgetRunningIcon"] { width: 0; }
+
+/* the field (grass stripes + side lines) */
+[data-testid="stStatusWidget"]:has([data-testid="stStatusWidgetRunningIcon"])::before {
+  content: ""; position: fixed; left: 0; right: 0; top: 60px; height: 44px; z-index: 999991;
+  background:
+    linear-gradient(#fff, #fff) left 50% top 0 / 2px 100% no-repeat,
+    repeating-linear-gradient(90deg, #3f9b3f 0 60px, #4caf50 60px 120px);
+  border-top: 2px solid #fff; border-bottom: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
 }
-[data-testid="stStatusWidgetRunningIcon"]::before,
-[data-testid="stStatusWidgetRunningIcon"]::after {
-  position: absolute; bottom: 0.1rem; line-height: 1;
+/* the goal on the right */
+[data-testid="stStatusWidget"]:has([data-testid="stStatusWidgetRunningIcon"])::after {
+  content: "🥅"; position: fixed; right: 10px; top: 64px; z-index: 999992;
+  font-size: 32px; line-height: 1;
 }
-/* runner: the emoji faces left, so flip it to run toward the ball */
+/* the player: the emoji faces left, so flip it to run right */
 [data-testid="stStatusWidgetRunningIcon"]::before {
-  content: "🏃"; left: 0; font-size: 1.4rem;
-  animation: bi-run 0.35s ease-in-out infinite alternate;
+  content: "🏃"; position: fixed; top: 68px; z-index: 999993; font-size: 26px; line-height: 1;
+  animation: bi-run-across 5s linear infinite, bi-run-bob .3s ease-in-out infinite alternate;
 }
-/* ball: kicked forward, rolls back to the runner's foot */
+/* the ball: kicked ahead of the player, then shot into the goal */
 [data-testid="stStatusWidgetRunningIcon"]::after {
-  content: "⚽"; left: 1.45rem; font-size: 0.8rem;
-  animation: bi-dribble 0.7s ease-in-out infinite;
+  content: "⚽"; position: fixed; top: 82px; z-index: 999993; font-size: 14px; line-height: 1;
+  animation: bi-ball-across 5s linear infinite, bi-dribble .6s ease-in-out infinite;
 }
-@keyframes bi-run {
+@keyframes bi-run-across {
+  0%   { left: 8px; }
+  80%  { left: calc(100vw - 150px); }
+  100% { left: calc(100vw - 130px); }
+}
+@keyframes bi-run-bob {
   from { transform: scaleX(-1) translateY(0); }
-  to   { transform: scaleX(-1) translateY(-3px); }
+  to   { transform: scaleX(-1) translateY(-4px); }
+}
+@keyframes bi-ball-across {
+  0%   { left: 32px; }
+  80%  { left: calc(100vw - 126px); }
+  92%  { left: calc(100vw - 30px); }
+  100% { left: calc(100vw - 30px); }
 }
 @keyframes bi-dribble {
   0%   { transform: translateX(0) rotate(0deg); }
-  50%  { transform: translateX(1.4rem) translateY(-2px) rotate(360deg); }
+  50%  { transform: translateX(14px) translateY(-3px) rotate(360deg); }
   100% { transform: translateX(0) rotate(720deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   [data-testid="stStatusWidgetRunningIcon"]::before,
-  [data-testid="stStatusWidgetRunningIcon"]::after { animation: none; }
+  [data-testid="stStatusWidgetRunningIcon"]::after { animation-duration: 0s; }
 }
 </style>
 """
