@@ -2,6 +2,8 @@
 
 bioinformatics 분석 파이프라인(R / Python)을 위한 웹 도우미입니다. 한 화면에 세 가지 기능이 있습니다.
 
+![화면](docs/screenshot.png)
+
 | 탭 | 기능 | 방식 |
 |---|---|---|
 | ① R ↔ Python 변환 | R 파이프라인은 Python으로, Python 파이프라인은 R로 변환 | 에이전트: 변환 → 실행 → 에러를 다시 보내 수정 (최대 3회) |
@@ -34,8 +36,10 @@ AI는 **Claude(Anthropic)와 GPT(OpenAI) 중 원하는 쪽**을 쓸 수 있습�
 
 ```
 bi-pipeline-assistant/
-├── app.py                      # Streamlit 웹 UI (탭 3개 + 축구 로딩 애니메이션)
+├── app.py                      # Streamlit 웹 UI (탭 3개)
+├── assets/bionexus_logo.png    # 회사 로고 (왼쪽 위)
 ├── bi_assistant/
+│   ├── ui.py                   # 디자인: 글꼴, 로고, 제목, 탭, 기능 설명, 축구 로딩 애니메이션
 │   ├── config.py               # 환경 변수 설정
 │   ├── llm.py                  # AI 호출부: Claude / GPT (다른 모델 추가 시 이 파일만 수정)
 │   ├── schemas.py              # Pydantic 모델 (구조화된 출력)
@@ -139,14 +143,23 @@ git push gitlab HEAD             # 지금 브랜치를 GitLab에도 올림
 
 ## 꾸미기
 
-로딩 애니메이션은 `app.py` 위쪽의 `RUNNING_ICON_CSS`에 있습니다.
+화면 디자인은 모두 `bi_assistant/ui.py`에 모여 있습니다.
 
-| 바꾸고 싶은 것 | 수정할 곳 |
+| 바꾸고 싶은 것 | 수정할 곳 (`bi_assistant/ui.py`) |
 |---|---|
+| 로고 이미지 | `assets/bionexus_logo.png` 파일 교체 |
+| 로고 옆 회사 이름 | `COMPANY_NAME` |
+| 제목 · 부제목 문구 | `HERO_HTML` |
+| 제목 글씨 색 (그라데이션) | `.bi-hero-text`의 `linear-gradient(...)` |
+| 탭별 색상 | `TAB_COLORS`와 `[data-testid="stTab"]:nth-child(...)`의 `--bi-accent` |
+| 탭 아래 한 줄 설명 | `[data-testid="stTab"]:nth-child(...)::after`의 `content` |
+| 각 탭 상단 상세 설명 | `FEATURE_INTROS` |
 | 선수가 골대까지 가는 시간 | `bi-run-across`, `bi-ball-across`의 `5s` (두 곳을 같은 값으로) |
 | 드리블 속도 | `bi-dribble`의 `.6s` |
 | 잔디 색 | `#3f9b3f`, `#4caf50` |
 | 선수/공/골대 모양 | `content: "🏃"`, `"⚽"`, `"🥅"` |
+
+글꼴은 Google Fonts의 **Outfit**(영문 제목)과 **Noto Sans KR**(한글)을 사용합니다. 인터넷이 안 되는 환경에서는 기본 글꼴로 표시됩니다.
 
 ## 로드맵
 

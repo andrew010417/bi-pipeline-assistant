@@ -9,7 +9,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from bi_assistant import config
+from bi_assistant import config, ui
 from bi_assistant.features import comparator, converter, param_advisor
 from bi_assistant.llm import LLMError
 from bi_assistant.loader import PipelineSource, load_file, load_text
@@ -21,66 +21,7 @@ UPLOAD_TYPES = ["py", "R", "r", "Rmd", "qmd", "ipynb", "smk", "nf", "sh", "txt"]
 
 st.set_page_config(page_title="BI Pipeline Assistant", page_icon="🧬", layout="wide")
 
-# While the app is running, show a soccer field under the header: a player dribbles
-# the ball from the left edge into the goal on the right, looping until the run ends.
-# Every element is a pseudo-element of Streamlit's status widget, which only holds
-# the running icon while a script is running, so the field disappears when work ends.
-RUNNING_ICON_CSS = """
-<style>
-[data-testid="stStatusWidgetRunningIcon"] svg { display: none !important; }
-[data-testid="stStatusWidgetRunningIcon"] { width: 0; }
-
-/* the field (grass stripes + side lines) */
-[data-testid="stStatusWidget"]:has([data-testid="stStatusWidgetRunningIcon"])::before {
-  content: ""; position: fixed; left: 0; right: 0; top: 60px; height: 44px; z-index: 999991;
-  background:
-    linear-gradient(#fff, #fff) left 50% top 0 / 2px 100% no-repeat,
-    repeating-linear-gradient(90deg, #3f9b3f 0 60px, #4caf50 60px 120px);
-  border-top: 2px solid #fff; border-bottom: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
-}
-/* the goal on the right */
-[data-testid="stStatusWidget"]:has([data-testid="stStatusWidgetRunningIcon"])::after {
-  content: "🥅"; position: fixed; right: 10px; top: 64px; z-index: 999992;
-  font-size: 32px; line-height: 1;
-}
-/* the player: the emoji faces left, so flip it to run right */
-[data-testid="stStatusWidgetRunningIcon"]::before {
-  content: "🏃"; position: fixed; top: 68px; z-index: 999993; font-size: 26px; line-height: 1;
-  animation: bi-run-across 5s linear infinite, bi-run-bob .3s ease-in-out infinite alternate;
-}
-/* the ball: kicked ahead of the player, then shot into the goal */
-[data-testid="stStatusWidgetRunningIcon"]::after {
-  content: "⚽"; position: fixed; top: 82px; z-index: 999993; font-size: 14px; line-height: 1;
-  animation: bi-ball-across 5s linear infinite, bi-dribble .6s ease-in-out infinite;
-}
-@keyframes bi-run-across {
-  0%   { left: 8px; }
-  80%  { left: calc(100vw - 150px); }
-  100% { left: calc(100vw - 130px); }
-}
-@keyframes bi-run-bob {
-  from { transform: scaleX(-1) translateY(0); }
-  to   { transform: scaleX(-1) translateY(-4px); }
-}
-@keyframes bi-ball-across {
-  0%   { left: 32px; }
-  80%  { left: calc(100vw - 126px); }
-  92%  { left: calc(100vw - 30px); }
-  100% { left: calc(100vw - 30px); }
-}
-@keyframes bi-dribble {
-  0%   { transform: translateX(0) rotate(0deg); }
-  50%  { transform: translateX(14px) translateY(-3px) rotate(360deg); }
-  100% { transform: translateX(0) rotate(720deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-testid="stStatusWidgetRunningIcon"]::before,
-  [data-testid="stStatusWidgetRunningIcon"]::after { animation-duration: 0s; }
-}
-</style>
-"""
-st.markdown(RUNNING_ICON_CSS, unsafe_allow_html=True)
+st.markdown(ui.THEME_CSS + ui.RUNNING_ICON_CSS, unsafe_allow_html=True)
 
 
 # ---------- helpers ----------
@@ -158,10 +99,10 @@ def run_safely(fn):
 
 # ---------- layout ----------
 
-st.title("🧬 BI Pipeline Assistant")
-st.caption("R ↔ Python 변환 · 파이프라인 비교/보완 · Parameter 가이드")
+st.html(ui.HERO_HTML)
 
 with st.sidebar:
+    st.html(ui.brand_html())
     st.subheader("설정")
     providers = config.available_providers()
     if len(providers) > 1:
@@ -187,6 +128,7 @@ tab_convert, tab_compare, tab_params = st.tabs(["① R ↔ Python 변환", "② 
 
 # ① Conversion
 with tab_convert:
+    st.html(ui.feature_intro_html(0))
     source = pipeline_input("conv", "변환할 파이프라인", "scrna_seurat.R")
     if source:
         target = converter.target_for(source.language)
@@ -229,6 +171,7 @@ with tab_convert:
 
 # ② Comparison
 with tab_compare:
+    st.html(ui.feature_intro_html(1))
     col_a, col_b = st.columns(2)
     with col_a:
         src_a = pipeline_input("cmp_a", "A: 내 파이프라인", "scrna_seurat.R")
@@ -268,6 +211,7 @@ with tab_compare:
 
 # ③ Parameter guide
 with tab_params:
+    st.html(ui.feature_intro_html(2))
     source = pipeline_input("par", "분석할 파이프라인", "scrna_seurat.R")
     if source and st.button("수정 가능한 parameter 찾기", type="primary"):
         if online:
