@@ -9,7 +9,31 @@ ASSETS_DIR = Path(__file__).parent.parent / "assets"
 LOGO_PATH = ASSETS_DIR / "bionexus_logo.png"
 COMPANY_NAME = "BioNexus"
 
-# Neutral palette: near-black text, grey surfaces, no accent colours.
+# Soft pastel palette: light backgrounds with muted text of the same hue.
+PASTEL = {
+    "blue":   {"bg": "#eaf2fd", "border": "#cfe0f7", "text": "#2f5185"},
+    "violet": {"bg": "#f1ecfb", "border": "#ddd2f3", "text": "#5a4690"},
+    "mint":   {"bg": "#e7f6ee", "border": "#c9e8d7", "text": "#2f6b4f"},
+    "rose":   {"bg": "#fdecec", "border": "#f5d0d0", "text": "#9a3f3f"},
+    "amber":  {"bg": "#fdf4e2", "border": "#f2e0b8", "text": "#86621b"},
+}
+
+# Parameter importance: code-line highlight + Streamlit badge for labels.
+IMPORTANCE = {
+    "high":   {"bg": PASTEL["rose"]["bg"],  "badge": ":red-badge[중요도 높음]",   "label": "중요도 높음", "tone": "rose"},
+    "medium": {"bg": PASTEL["amber"]["bg"], "badge": ":orange-badge[중요도 보통]", "label": "중요도 보통", "tone": "amber"},
+    "low":    {"bg": PASTEL["blue"]["bg"],  "badge": ":blue-badge[중요도 낮음]",   "label": "중요도 낮음", "tone": "blue"},
+}
+
+# Pipeline comparison status.
+STATUS = {
+    "both_same":      {"label": "동일",   "tone": "mint"},
+    "both_different": {"label": "차이",   "tone": "amber"},
+    "only_a":         {"label": "A에만", "tone": "blue"},
+    "only_b":         {"label": "B에만", "tone": "violet"},
+}
+_STATUS_BY_LABEL = {v["label"]: v["tone"] for v in STATUS.values()}
+
 THEME_CSS = """
 <style>
 :root {
@@ -40,12 +64,15 @@ THEME_CSS = """
 [data-testid="stTabs"] .react-aria-SelectionIndicator,
 [data-testid="stTabs"] [role="tablist"]::after { display: none; }
 [data-testid="stTab"] {
+  --bi-tab-bg: #eaf2fd; --bi-tab-border: #cfe0f7; --bi-tab-text: #2f5185;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   height: auto; padding: 16px 20px; border-radius: 12px;
   border: 1px solid var(--bi-border); background: var(--bi-surface);
   transition: border-color .15s, background .15s, box-shadow .15s;
 }
-[data-testid="stTab"]:hover { border-color: #9ca3af; }
+[data-testid="stTab"]:nth-child(2) { --bi-tab-bg: #f1ecfb; --bi-tab-border: #ddd2f3; --bi-tab-text: #5a4690; }
+[data-testid="stTab"]:nth-child(3) { --bi-tab-bg: #e7f6ee; --bi-tab-border: #c9e8d7; --bi-tab-text: #2f6b4f; }
+[data-testid="stTab"]:hover { border-color: var(--bi-tab-border); }
 [data-testid="stTab"] p {
   font-family: var(--bi-font); font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em;
   color: var(--bi-muted);
@@ -57,18 +84,22 @@ THEME_CSS = """
 [data-testid="stTab"]:nth-child(2)::after { content: "내 파이프라인 vs 참고 파이프라인"; }
 [data-testid="stTab"]:nth-child(3)::after { content: "바꿔볼 parameter와 추천값 안내"; }
 [data-testid="stTab"][aria-selected="true"] {
-  background: #fff; border: 1.5px solid var(--bi-text); box-shadow: 0 4px 14px rgba(17, 24, 39, .08);
+  background: var(--bi-tab-bg); border: 1.5px solid var(--bi-tab-border);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, .05);
 }
-[data-testid="stTab"][aria-selected="true"] p { color: var(--bi-text); }
+[data-testid="stTab"][aria-selected="true"] p { color: var(--bi-tab-text); }
 [data-testid="stTab"][aria-selected="true"]::after { color: var(--bi-muted); }
 
 /* ---------- feature intro card (top of each tab) ---------- */
 .bi-intro {
   font-family: var(--bi-font); color: var(--bi-text);
-  border: 1px solid var(--bi-border); border-radius: 12px; padding: 20px 24px; margin: 8px 0 20px;
-  background: var(--bi-surface);
+  border: 1px solid var(--bi-intro-border); border-radius: 12px; padding: 20px 24px; margin: 8px 0 20px;
+  background: linear-gradient(180deg, var(--bi-intro-bg) 0%, #fff 85%);
 }
-.bi-intro h3 { margin: 0 0 4px; padding: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; }
+.bi-intro h3 {
+  margin: 0 0 4px; padding: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em;
+  color: var(--bi-intro-text);
+}
 .bi-intro .bi-lead { font-size: 1rem; margin: 0 0 16px; color: var(--bi-muted); }
 .bi-intro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .bi-intro-grid h4 {
@@ -77,20 +108,34 @@ THEME_CSS = """
 }
 .bi-intro-grid ul { margin: 0; padding-left: 1.05em; font-size: .92rem; line-height: 1.6; }
 .bi-intro .bi-tip {
-  margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--bi-border);
+  margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--bi-intro-border);
   font-size: .88rem; color: var(--bi-muted);
 }
 .bi-intro .bi-tip b { color: var(--bi-text); font-weight: 600; }
 /* inline code: neutral instead of Streamlit's green */
 [data-testid="stMarkdownContainer"] code { color: var(--bi-text); background: #f3f4f6; }
 
-/* ---------- status/info boxes: neutral grey (errors stay red) ---------- */
-[data-testid="stAlertContainer"]:has([data-testid="stAlertContentInfo"],
-  [data-testid="stAlertContentSuccess"], [data-testid="stAlertContentWarning"]) {
-  background: var(--bi-surface) !important; border: 1px solid var(--bi-border);
+/* ---------- status/info boxes: soft pastel (errors keep Streamlit's red) ---------- */
+[data-testid="stAlertContainer"]:has([data-testid="stAlertContentInfo"]) {
+  background: #eaf2fd !important; border: 1px solid #cfe0f7;
 }
-[data-testid="stAlertContentInfo"], [data-testid="stAlertContentSuccess"],
-[data-testid="stAlertContentWarning"] { color: var(--bi-text) !important; }
+[data-testid="stAlertContainer"]:has([data-testid="stAlertContentSuccess"]) {
+  background: #e7f6ee !important; border: 1px solid #c9e8d7;
+}
+[data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) {
+  background: #fdf4e2 !important; border: 1px solid #f2e0b8;
+}
+[data-testid="stAlertContentInfo"] { color: #2f5185 !important; }
+[data-testid="stAlertContentSuccess"] { color: #2f6b4f !important; }
+[data-testid="stAlertContentWarning"] { color: #86621b !important; }
+
+/* ---------- result helpers ---------- */
+.bi-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; font-family: var(--bi-font); }
+.bi-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px;
+  font-size: .85rem; font-weight: 600; border: 1px solid;
+}
+.bi-chip b { font-weight: 800; }
 
 @media (max-width: 900px) {
   [data-testid="stTabs"] [role="tablist"], .bi-intro-grid { grid-template-columns: 1fr; }
@@ -208,8 +253,10 @@ def feature_intro_html(index: int) -> str:
     def items(xs):
         return "".join(f"<li>{x}</li>" for x in xs)
 
+    tone = PASTEL[["blue", "violet", "mint"][index]]
     return (
-        '<div class="bi-intro">'
+        f'<div class="bi-intro" style="--bi-intro-bg:{tone["bg"]};--bi-intro-border:{tone["border"]};'
+        f'--bi-intro-text:{tone["text"]}">'
         f'<h3>{f["title"]}</h3><p class="bi-lead">{f["lead"]}</p>'
         '<div class="bi-intro-grid">'
         f'<div><h4>넣는 것</h4><ul>{items(f["input"])}</ul></div>'
@@ -217,3 +264,30 @@ def feature_intro_html(index: int) -> str:
         f'<div><h4>이럴 때 쓰세요</h4><ul>{items(f["when"])}</ul></div>'
         f'</div><p class="bi-tip"><b>Tip</b>&nbsp;&nbsp;{f["tip"]}</p></div>'
     )
+
+
+def _chip(tone: str, text: str) -> str:
+    t = PASTEL[tone]
+    return f'<span class="bi-chip" style="background:{t["bg"]};border-color:{t["border"]};color:{t["text"]}">{text}</span>'
+
+
+def importance_legend_html() -> str:
+    return '<div class="bi-chips">' + "".join(_chip(v["tone"], v["label"]) for v in IMPORTANCE.values()) + "</div>"
+
+
+def status_summary_html(statuses: list[str]) -> str:
+    """Count chips above the comparison table, e.g. '차이 3'."""
+    chips = [
+        _chip(v["tone"], f'{v["label"]} <b>{statuses.count(key)}</b>')
+        for key, v in STATUS.items()
+    ]
+    return '<div class="bi-chips">' + "".join(chips) + "</div>"
+
+
+def status_cell_style(label: str) -> str:
+    """pandas Styler cell style for the comparison table's status column."""
+    tone = _STATUS_BY_LABEL.get(label)
+    if tone is None:
+        return ""
+    t = PASTEL[tone]
+    return f"background-color: {t['bg']}; color: {t['text']}; font-weight: 600"

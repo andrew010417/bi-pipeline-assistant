@@ -7,6 +7,7 @@ import hashlib
 import html
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 from bi_assistant import config, ui
@@ -75,8 +76,7 @@ def show_ir(ir) -> None:
 
 def highlighted_code(code: str, lines: dict[int, str]) -> str:
     """HTML <pre> with given line numbers highlighted by importance colour."""
-    # neutral greys: darker = more important
-    colours = {"high": "rgba(17,24,39,.14)", "medium": "rgba(17,24,39,.08)", "low": "rgba(17,24,39,.04)"}
+    colours = {k: v["bg"] for k, v in ui.IMPORTANCE.items()}
     rows = []
     for i, line in enumerate(code.splitlines(), 1):
         bg = colours.get(lines.get(i, ""), "transparent")
@@ -85,8 +85,10 @@ def highlighted_code(code: str, lines: dict[int, str]) -> str:
             f'width:3em">{i}</span>{html.escape(line) or "&nbsp;"}</div>'
         )
     return (
-        '<pre style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.45;padding:12px;border-radius:8px;'
-        'overflow-x:auto;background:rgba(127,127,127,.08)">' + "".join(rows) + "</pre>"
+        ui.importance_legend_html()
+        + '<pre style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.45;'
+        'padding:12px;border-radius:10px;overflow-x:auto;background:#fafafa;border:1px solid #eef0f3">'
+        + "".join(rows) + "</pre>"
     )
 
 
@@ -147,8 +149,8 @@ with tab_convert:
                     with st.spinner("실행 검증 중..."):
                         log = converter.verify_and_fix(source, result)
                     for i, run in enumerate(log.rounds, 1):
-                        icon = "성공" if run.ok else "실패"
-                        with st.expander(f"실행 {i}회차 · {icon}"):
+                        icon = ":green-badge[성공]" if run.ok else ":red-badge[실패]"
+                        with st.expander(f"{icon} 실행 {i}회차"):
                             st.code(run.stderr or run.stdout or "(출력 없음)")
                     result = log.final
                 return result
@@ -167,8 +169,8 @@ with tab_convert:
                     st.dataframe([m.model_dump() for m in result.package_mapping], hide_index=True)
                 with c2:
                     st.markdown("**주의사항**")
-                    for c in result.caveats:
-                        st.markdown(f"- {c}")
+                    if result.caveats:
+                        st.warning("\n".join(f"- {c}" for c in result.caveats))
 
 # ② Comparison
 with tab_compare:
@@ -187,13 +189,16 @@ with tab_compare:
         result = run_safely(_compare)
         if result:
             st.info(result.summary)
-            badge = {"both_same": "동일", "both_different": "차이", "only_a": "A에만", "only_b": "B에만"}
-            st.dataframe(
+            rows = pd.DataFrame(
                 [
-                    {"카테고리": m.category, "상태": badge[m.status], "A": m.a_step or "—",
+                    {"상태": ui.STATUS[m.status]["label"], "카테고리": m.category, "A": m.a_step or "—",
                      "B": m.b_step or "—", "차이점": " / ".join(m.differences)}
                     for m in result.matches
-                ],
+                ]
+            )
+            st.html(ui.status_summary_html([m.status for m in result.matches]))
+            st.dataframe(
+                rows.style.map(ui.status_cell_style, subset=["상태"]),
                 use_container_width=True,
                 hide_index=True,
             )
@@ -202,7 +207,8 @@ with tab_compare:
                 items = [s for s in result.suggestions if s.target == target]
                 if not items:
                     continue
-                st.markdown(f"#### {target}에 추가하면 좋은 것")
+                color = "blue" if target == "A" else "violet"
+                st.markdown(f"#### :{color}-badge[{target}] 에 추가하면 좋은 것")
                 src = src_a if target == "A" else src_b
                 for s in items:
                     where = f" · `{s.insert_after_step}` 다음" if s.insert_after_step else ""
@@ -221,7 +227,7 @@ with tab_params:
             guide = param_advisor.offline_guide(source)
         if guide:
             st.info(guide.summary)
-            levels = {"high": "중요도 높음", "medium": "중요도 보통", "low": "중요도 낮음"}
+            levels = {k: v["badge"] for k, v in ui.IMPORTANCE.items()}
             code_col, list_col = st.columns([3, 2])
             with code_col:
                 marks = {}
@@ -236,9 +242,9 @@ with tab_params:
                         st.markdown(f"**함수**: `{p.function}`" + (f" · **단계**: {p.step}" if p.step else ""))
                         st.write(p.what_it_does)
                         if p.effect_of_increase:
-                            st.markdown(f"⬆️ 올리면: {p.effect_of_increase}")
+                            st.markdown(f":blue-badge[올리면] {p.effect_of_increase}")
                         if p.effect_of_decrease:
-                            st.markdown(f"⬇️ 내리면: {p.effect_of_decrease}")
+                            st.markdown(f":orange-badge[내리면] {p.effect_of_decrease}")
                         st.markdown("**추천 후보**")
                         for c in p.candidates:
                             st.markdown(f"- `{c.value}`" + (f" — {c.when_to_use}" if c.when_to_use else ""))

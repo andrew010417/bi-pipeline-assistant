@@ -4,6 +4,10 @@ bioinformatics 분석 파이프라인(R / Python)을 위한 웹 도우미입니�
 
 ![화면](docs/screenshot.png)
 
+결과 화면은 상태와 중요도에 따라 연한 색으로 구분됩니다.
+
+![결과 화면](docs/results.png)
+
 | 탭 | 기능 | 방식 |
 |---|---|---|
 | ① R ↔ Python 변환 | R 파이프라인은 Python으로, Python 파이프라인은 R로 변환 | 에이전트: 변환 → 실행 → 에러를 다시 보내 수정 (최대 3회) |
@@ -152,7 +156,9 @@ git push gitlab HEAD             # 지금 브랜치를 GitLab에도 올림
 | 로고 이미지 | `assets/bionexus_logo.png` 파일 교체 |
 | 로고 옆 회사 이름 | `ui.py`의 `COMPANY_NAME` |
 | 제목 · 부제목 문구 | `ui.py`의 `HERO_HTML` |
-| 글자 · 테두리 · 배경 회색 톤 | `ui.py` 맨 위 `:root`의 `--bi-text`, `--bi-muted`, `--bi-border`, `--bi-surface` |
+| 결과 화면 파스텔 색 (비교 상태, 중요도) | `ui.py`의 `PASTEL`, `STATUS`, `IMPORTANCE` |
+| 탭별 연한 색 | `ui.py`의 `[data-testid="stTab"]:nth-child(...)`의 `--bi-tab-*` 값 |
+| 글자 · 테두리 · 배경 회색 톤 | `ui.py`의 `:root`의 `--bi-text`, `--bi-muted`, `--bi-border`, `--bi-surface` |
 | 버튼 · 선택 표시 색 | `.streamlit/config.toml`의 `primaryColor` |
 | 탭 아래 한 줄 설명 | `ui.py`의 `[data-testid="stTab"]:nth-child(...)::after`의 `content` |
 | 각 탭 상단 상세 설명 | `ui.py`의 `FEATURE_INTROS` |
