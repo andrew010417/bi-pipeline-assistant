@@ -1,0 +1,15 @@
+[server]
+# serves ./static (the bundled Pretendard font) at app/static/
+enableStaticServing = true
+
+[theme]
+base = "light"
+primaryColor = "#111827"
+font = "Pretendard, sans-serif"
+headingFont = "Pretendard, sans-serif"
+
+[[theme.fontFaces]]
+family = "Pretendard"
+url = "app/static/fonts/PretendardVariable.woff2"
+weight = "45 920"
+style = "normal"

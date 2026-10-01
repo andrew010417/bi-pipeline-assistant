@@ -75,7 +75,8 @@ def show_ir(ir) -> None:
 
 def highlighted_code(code: str, lines: dict[int, str]) -> str:
     """HTML <pre> with given line numbers highlighted by importance colour."""
-    colours = {"high": "rgba(239,68,68,.25)", "medium": "rgba(245,158,11,.25)", "low": "rgba(59,130,246,.18)"}
+    # neutral greys: darker = more important
+    colours = {"high": "rgba(17,24,39,.14)", "medium": "rgba(17,24,39,.08)", "low": "rgba(17,24,39,.04)"}
     rows = []
     for i, line in enumerate(code.splitlines(), 1):
         bg = colours.get(lines.get(i, ""), "transparent")
@@ -122,7 +123,7 @@ with st.sidebar:
             "API 키 없음 → 오프라인 모드\n\n"
             "`.env`에 `ANTHROPIC_API_KEY` 또는 `OPENAI_API_KEY`를 넣으면 모든 기능이 켜집니다."
         )
-    st.caption("⚠️ 회사 코드/데이터를 외부 API로 보내도 되는지 사내 정책을 확인하세요.")
+    st.caption("회사 코드/데이터를 외부 API로 보내도 되는지 사내 정책을 확인하세요.")
 
 tab_convert, tab_compare, tab_params = st.tabs(["① R ↔ Python 변환", "② 파이프라인 비교", "③ Parameter 가이드"])
 
@@ -146,8 +147,8 @@ with tab_convert:
                     with st.spinner("실행 검증 중..."):
                         log = converter.verify_and_fix(source, result)
                     for i, run in enumerate(log.rounds, 1):
-                        icon = "✅" if run.ok else "❌"
-                        with st.expander(f"{icon} 실행 {i}회차"):
+                        icon = "성공" if run.ok else "실패"
+                        with st.expander(f"실행 {i}회차 · {icon}"):
                             st.code(run.stderr or run.stdout or "(출력 없음)")
                     result = log.final
                 return result
@@ -186,7 +187,7 @@ with tab_compare:
         result = run_safely(_compare)
         if result:
             st.info(result.summary)
-            badge = {"both_same": "✅ 동일", "both_different": "⚠️ 차이", "only_a": "🅰️ A에만", "only_b": "🅱️ B에만"}
+            badge = {"both_same": "동일", "both_different": "차이", "only_a": "A에만", "only_b": "B에만"}
             st.dataframe(
                 [
                     {"카테고리": m.category, "상태": badge[m.status], "A": m.a_step or "—",
@@ -220,7 +221,7 @@ with tab_params:
             guide = param_advisor.offline_guide(source)
         if guide:
             st.info(guide.summary)
-            levels = {"high": "🔴 높음", "medium": "🟠 중간", "low": "🔵 낮음"}
+            levels = {"high": "중요도 높음", "medium": "중요도 보통", "low": "중요도 낮음"}
             code_col, list_col = st.columns([3, 2])
             with code_col:
                 marks = {}
