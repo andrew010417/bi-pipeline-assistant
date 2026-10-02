@@ -15,6 +15,8 @@
 
 ![화면](docs/screenshot.png)
 
+> 설계 설명 발표 자료: [docs/BI_Pipeline_Assistant_설계.pptx](docs/BI_Pipeline_Assistant_설계.pptx) (슬라이드 노트에 설명 포함)
+
 ## 왜 만들었나요
 
 Bioinformatics 분석은 R과 Python이 섞여 있고, 논문이나 튜토리얼에서 가져온 파이프라인과 직접 만든 파이프라인이 조금씩 다릅니다. 또 어떤 parameter를 바꿔야 결과가 달라지는지는 경험이 있어야 압니다.
